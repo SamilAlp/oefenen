@@ -1,0 +1,134 @@
+<?php
+session_start();
+include "classdatabase.php";
+
+$pdo = new database("localhost", "examenoefen", "root", "", "utf8mb4");
+
+$reservatie_id = $_GET['reservatie_id'] ?? '';
+$reservatie_bar_id = $_GET['reservatie_bar_id'] ?? '';
+$reorder = $_GET['reorder'] ?? '';
+$klant =  $_GET['klant'] ?? '';
+$klant_id = $_GET['klant_id'] ?? '';
+
+$error = $_SESSION['error'] ?? '';
+$_SESSION['error'] = '';
+
+
+$reservatie_bar_id = $_GET['reservatie_bar_id'] ?? '';
+$reorder = $_GET['reorder'] ?? '';
+
+if(!$reservatie_bar_id) {
+  // create reservatie
+  $reservatie_bar_id = $pdo->reservatiebaradd($klant_id, $klant);
+  header("Location: barchoose.php?reservatie_bar_id=$reservatie_bar_id&klant=$klant&klant_id=$klant_id&reorder=$reorder"); 
+  exit; 
+}
+
+
+if($reservatie_bar_id && $reorder == 'yes') {
+  // get reservation details
+  $reservatie = $pdo->reservatie($reservatie_bar_id);
+
+  // update allow_klant to 0
+  $pdo->disallowreservatie($reservatie_bar_id);
+
+}
+
+if(isset($_POST['submit'])){
+// instance van je database class
+}
+
+?>
+
+
+
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>Choose Bar</title>
+   </head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <meta charset="utf-8">
+  <!-- Somehow I got an error, so I comment the title, just uncomment to show -->
+  <!-- <title>Responsive Navigation Bar</title> -->
+  <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="mainstyle.css">
+<body style="background: #6E6E6E">
+    <nav>
+      <ul>
+        <li class="logo">Hotel Der Tuin</li>
+        <li class="items"><a href="index.php">Website overview </a></li>
+        <li class="items"><a href="advise.php">Advise</a></li>
+        <li class="items"><a href="indexreservaties.php">Reservaties</a></li>
+        <li class="items"><a href="contact.php">Contact</a></li>
+       <!--  <li class="items"> <a href="loginCustomer.php"> <button class="btn btn-primary" type="submit"> Login </button></a><li>   -->
+      </ul>
+    </nav>
+    <div class="container"> 
+        <div class="img1">
+          <img src="images/png1.jpg" style="width:45%; float:center;height: 280px;" >
+          <img src="images/png2.jpg" style="width:40%; float:center; height: 280px;">
+        </div>  
+    </div>
+  <div class style="margin-top: 200px;">    
+      <div class="col-lg-12">
+        <br><br>
+      <br>
+      <form action="pleasewaitbar.php?reservatie_bar_id=<?php echo $reservatie_bar_id; ?>&reorder=<?php echo $reorder; ?>" method="POST"><!--     succesmetroomservice.php     -->
+      <table class=" table table-striped table-hover table-bordered">
+        <tr class="bg-dark text-white text-center">
+          <th> Drinks </th>
+          <th> Snack </th>
+          <th> Aanvraag </th>
+        </tr>
+    
+        <tr class="text-center">
+          <h1 class ="text-warning text-center" > Roomservice bestellen! </h1>
+          <!-- <td> <input type="text" id="naam" name="naam" placeholder="naam.." required ></td> -->
+        <?php if($error) { ?>
+          <p style="background-color: red; color: #fff; text-align: center;"><?php echo $error; ?></p>
+        <?php } ?>
+           <td> 
+            <input type="hidden" name="reservatie_bar_id" value="<?php echo $reservatie_bar_id; ?>">
+            <select name="bar" id="cars">
+              <option value="">None</option>
+              <?php 
+                  $pdo = new database("localhost", "examenoefen", "root", "", "utf8mb4");
+                  $bar=$pdo->bar();
+                  foreach($bar as $res) {
+              ?>
+                <option value="<?php echo $res['id']; ?>"><?php echo $res['naam']; ?> ($<?php echo number_format($res['prijs']); ?>)</option>
+              <?php
+                } 
+              ?>
+            </select>
+          </td>
+          <td> 
+            <select name="snack" id="cars">
+              <option value="">None</option>
+              <?php 
+                  $snack=$pdo->snack();
+                  foreach($snack as $res) {
+              ?>
+                <option value="<?php echo $res['id']; ?>"><?php echo $res['naam']; ?> ($<?php echo number_format($res['prijs']); ?>)</option>
+              <?php
+                } 
+              ?>
+            </select>
+          </td>
+          <td> <input name="pieter" type="submit" value="Bestellen!" /> </td>
+        </tr>       
+      </table>
+      </form>
+         
+    </div>
+  </div> 
+  
+</body>
+</html>
